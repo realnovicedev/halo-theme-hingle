@@ -467,7 +467,7 @@ main img {
 .post-meta .category:before{ content: "\f07b" }
 .post-meta .user:before{ content: "\f007" }
 .post-meta .comments:before{ content: "\f086" }
-.post-meta .view:before{ content: "\f080" }
+.post-meta .view:before{ content: "\f06e" }
 /* Hexo */
 .post-meta .tags:before{ content: "\f02c" }
 

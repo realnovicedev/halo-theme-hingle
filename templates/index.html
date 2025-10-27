@@ -28,7 +28,7 @@ th:replace="~{module/macro :: html(title = ${site.title}, head=null, content = ~
                   <span th:if="${not #lists.isEmpty(post.categories)}" th:each="category : ${post.categories}"
                     class="category" th:text="${category.spec.displayName}"></span>
     
-                  <span class="comments" th:text="${post.stats.comment} + ' ℃'">0 ℃</span>
+                  <span class="view" th:text="${post.stats.visit}">0</span>
                 </div>
               </div>
             </th:block>
