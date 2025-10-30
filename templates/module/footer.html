@@ -24,7 +24,6 @@
 <script th:src="@{/assets/js/kico.js?v={version}(version=${theme.spec.version})}"></script>
 <script th:src="@{/assets/js/hingle.js?v={version}(version=${theme.spec.version})}"></script>
 <script th:inline="javascript"> 
-    let config = JSON.stringify({night: /*[[${theme.config.genernal.night}]]*/, copyright: /*[[${theme.config.genernal.copyright}]]*/});
-    var hingle = new Paul_Hingle(config);
+    var hingle = new Paul_Hingle();
 </script>
 

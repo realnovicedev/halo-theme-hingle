@@ -13,6 +13,68 @@
 var Paul_Hingle = function (config) {
     var body = document.body;
     var content = ks.select(".post-content:not(.is-special), .page-content:not(.is-special)");
+    window.Hingle = window.Hingle || {};
+
+    var commentSelector = "#halo-comment";
+    var commentRetryLimit = 10;
+    var commentRetryDelay = 150;
+
+    function normaliseScheme(value) {
+        return value === "dark" ? "dark" : "light";
+    }
+
+    function applyCommentScheme(scheme) {
+        var applied = false;
+        var container = document.querySelector(commentSelector);
+
+        if (!container) {
+            return false;
+        }
+
+        var host = container.querySelector("halo-comment, halo-comment-widget, halo\\:comment, [color-scheme], [colorScheme]");
+
+        if (host) {
+            host.setAttribute("color-scheme", scheme);
+            host.setAttribute("colorScheme", scheme);
+            applied = true;
+        }
+
+        var mount = document.querySelector(commentSelector + " > div > div");
+
+        if (mount && mount.shadowRoot) {
+            var widget = mount.shadowRoot.querySelector("div.halo-comment-widget");
+
+            if (widget) {
+                widget.classList.remove("light", "dark");
+                widget.classList.add(scheme);
+                applied = true;
+            }
+        }
+
+        return applied;
+    }
+
+    function ensureCommentScheme(scheme) {
+        var attempts = 0;
+        var target = normaliseScheme(scheme);
+        var containerExists = document.querySelector(commentSelector);
+
+        if (!containerExists) {
+            return;
+        }
+
+        function attemptSync() {
+            if (applyCommentScheme(target)) {
+                return;
+            }
+
+            if (attempts++ < commentRetryLimit) {
+                setTimeout(attemptSync, commentRetryDelay);
+            }
+        }
+
+        attemptSync();
+    }
 
     // 菜单按钮
     this.header = function () {
@@ -27,30 +89,18 @@ var Paul_Hingle = function (config) {
 
     // 关灯切换
     this.night = function () {
-        //如果开启了评论组件，且评论组件没更新的话
-        if (document.getElementById("halo-comment") && document.querySelector("div#halo-comment > div > div")){
-            var comment_on = true;
-            var ii = document.querySelector("div#halo-comment > div > div");
-            var comment_box = ii.shadowRoot.querySelector("div.halo-comment-widget");
-        }else{
-            comment_on = false;
-        };
         if(body.classList.contains("dark-theme")){
             body.classList.remove("dark-theme", "color-scheme-dark");
             body.classList.add("color-scheme-light");
-            if(comment_on){
-                comment_box.classList.remove("dark");
-                comment_box.classList.add("light");
-            }
+            ensureCommentScheme("light");
+            window.Hingle.commentScheme = "light";
             document.cookie = "night=false;" + "path=/;" + "max-age=21600";
         }
         else{
             body.classList.remove("color-scheme-light");
             body.classList.add("dark-theme", "color-scheme-dark");
-            if(comment_on){
-                comment_box.classList.remove("light");
-                comment_box.classList.add("dark");
-            }
+            ensureCommentScheme("dark");
+            window.Hingle.commentScheme = "dark";
             document.cookie = "night=true;" + "path=/;" + "max-age=21600";
         }
     };
@@ -143,6 +193,10 @@ var Paul_Hingle = function (config) {
             document.body.classList.add("color-scheme-light");
         }
     }
+
+    var initialScheme = body.classList.contains("dark-theme") ? "dark" : "light";
+    window.Hingle.commentScheme = initialScheme;
+    ensureCommentScheme(initialScheme);
 
     // 如果开启复制内容提示
     if(ThemeConfig.copyright){
