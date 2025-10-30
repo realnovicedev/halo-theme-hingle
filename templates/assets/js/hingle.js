@@ -76,6 +76,37 @@ var Paul_Hingle = function (config) {
         attemptSync();
     }
 
+    function applyThemeState(isDark, persistCookie) {
+        var root = document.documentElement;
+        var scheme = isDark ? "dark" : "light";
+        var classes = ["dark-theme", "color-scheme-dark", "color-scheme-light"];
+
+        if (window.Hingle && typeof window.Hingle.applyThemeClass === "function") {
+            window.Hingle.applyThemeClass(isDark);
+        } else {
+            classes.forEach(function (cls) {
+                root.classList.remove(cls);
+                body.classList.remove(cls);
+            });
+
+            if (isDark) {
+                root.classList.add("dark-theme", "color-scheme-dark");
+                body.classList.add("dark-theme", "color-scheme-dark");
+            } else {
+                root.classList.add("color-scheme-light");
+                body.classList.add("color-scheme-light");
+            }
+        }
+
+        ensureCommentScheme(scheme);
+        window.Hingle.commentScheme = scheme;
+        window.Hingle.initialNight = isDark;
+
+        if (persistCookie) {
+            document.cookie = "night=" + (isDark ? "true" : "false") + ";" + "path=/;" + "max-age=21600";
+        }
+    }
+
     // 菜单按钮
     this.header = function () {
         var menu = document.getElementsByClassName("head-menu")[0];
@@ -89,20 +120,8 @@ var Paul_Hingle = function (config) {
 
     // 关灯切换
     this.night = function () {
-        if(body.classList.contains("dark-theme")){
-            body.classList.remove("dark-theme", "color-scheme-dark");
-            body.classList.add("color-scheme-light");
-            ensureCommentScheme("light");
-            window.Hingle.commentScheme = "light";
-            document.cookie = "night=false;" + "path=/;" + "max-age=21600";
-        }
-        else{
-            body.classList.remove("color-scheme-light");
-            body.classList.add("dark-theme", "color-scheme-dark");
-            ensureCommentScheme("dark");
-            window.Hingle.commentScheme = "dark";
-            document.cookie = "night=true;" + "path=/;" + "max-age=21600";
-        }
+        var currentlyDark = body.classList.contains("dark-theme");
+        applyThemeState(!currentlyDark, true);
     };
 
     // 目录树
@@ -178,19 +197,15 @@ var Paul_Hingle = function (config) {
         var hour = new Date().getHours();
 
         if(document.cookie.indexOf("night") === -1 && (hour <= 5 || hour >= 22)){
-            document.body.classList.remove("color-scheme-light");
-            document.body.classList.add("dark-theme", "color-scheme-dark");
-            document.cookie = "night=true;" + "path=/;" + "max-age=21600";
+            applyThemeState(true, true);
         }
     }
     else if(document.cookie.indexOf("night") !== -1){
         if(document.cookie.indexOf("night=true") !== -1){
-            document.body.classList.remove("color-scheme-light");
-            document.body.classList.add("dark-theme", "color-scheme-dark");
+            applyThemeState(true, false);
         }
         else{
-            document.body.classList.remove("dark-theme", "color-scheme-dark");
-            document.body.classList.add("color-scheme-light");
+            applyThemeState(false, false);
         }
     }
 

@@ -6,6 +6,29 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
     <meta property="og:site_name" th:attr="content= ${site.title}">
+    <script>
+        (function () {
+            window.Hingle = window.Hingle || {};
+            var root = document.documentElement;
+            var nightCookie = document.cookie.match(/(?:^|;\s*)night=(true|false)/);
+            var isDark = nightCookie ? nightCookie[1] === "true" : false;
+
+            root.classList.remove("dark-theme", "color-scheme-dark", "color-scheme-light");
+            if (isDark) {
+                root.classList.add("dark-theme", "color-scheme-dark");
+            } else {
+                root.classList.add("color-scheme-light");
+            }
+
+            window.Hingle.initialNight = isDark;
+        })();
+    </script>
+    <style>
+        html.dark-theme body{
+            background: #333;
+            color: #aaa;
+        }
+    </style>
     <link rel="icon" th:href="@{${site.logo}}" sizes="192x192" />
     <link rel="stylesheet" th:href="@{/assets/css/kico.css?v={version}(version=${theme.spec.version})}" />
     <link rel="stylesheet" th:href="@{/assets/css/hingle.css?v={version}(version=${theme.spec.version})}" />
