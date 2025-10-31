@@ -11,6 +11,7 @@
 ---- */
 
 var Paul_Hingle = function (config) {
+    var root = document.documentElement;
     var body = document.body;
     var content = ks.select(".post-content:not(.is-special), .page-content:not(.is-special)");
     window.Hingle = window.Hingle || {};
@@ -76,26 +77,49 @@ var Paul_Hingle = function (config) {
         attemptSync();
     }
 
-    function applyThemeState(isDark, persistCookie) {
-        var root = document.documentElement;
-        var scheme = isDark ? "dark" : "light";
+    function themeClassesMatch(isDark) {
+        var rootHasDark = root.classList.contains("dark-theme");
+        var bodyHasDark = body.classList.contains("dark-theme");
+
+        if (isDark) {
+            return rootHasDark && bodyHasDark;
+        }
+
+        return !rootHasDark && !bodyHasDark;
+    }
+
+    function syncThemeClasses(isDark) {
         var classes = ["dark-theme", "color-scheme-dark", "color-scheme-light"];
 
-        if (window.Hingle && typeof window.Hingle.applyThemeClass === "function") {
-            window.Hingle.applyThemeClass(isDark);
-        } else {
-            classes.forEach(function (cls) {
-                root.classList.remove(cls);
-                body.classList.remove(cls);
-            });
+        classes.forEach(function (cls) {
+            root.classList.remove(cls);
+            body.classList.remove(cls);
+        });
 
-            if (isDark) {
-                root.classList.add("dark-theme", "color-scheme-dark");
-                body.classList.add("dark-theme", "color-scheme-dark");
-            } else {
-                root.classList.add("color-scheme-light");
-                body.classList.add("color-scheme-light");
+        if (isDark) {
+            root.classList.add("dark-theme", "color-scheme-dark");
+            body.classList.add("dark-theme", "color-scheme-dark");
+        } else {
+            root.classList.add("color-scheme-light");
+            body.classList.add("color-scheme-light");
+        }
+    }
+
+    function applyThemeState(isDark, persistCookie) {
+        var scheme = isDark ? "dark" : "light";
+        var appliedViaHook = false;
+
+        if (window.Hingle && typeof window.Hingle.applyThemeClass === "function") {
+            try {
+                window.Hingle.applyThemeClass(isDark);
+                appliedViaHook = true;
+            } catch (error) {
+                console.error("Failed to apply theme using custom handler", error);
             }
+        }
+
+        if (!appliedViaHook || !themeClassesMatch(isDark)) {
+            syncThemeClasses(isDark);
         }
 
         ensureCommentScheme(scheme);
@@ -120,7 +144,7 @@ var Paul_Hingle = function (config) {
 
     // 关灯切换
     this.night = function () {
-        var currentlyDark = body.classList.contains("dark-theme");
+        var currentlyDark = root.classList.contains("dark-theme") || body.classList.contains("dark-theme");
         applyThemeState(!currentlyDark, true);
     };
 
@@ -209,7 +233,7 @@ var Paul_Hingle = function (config) {
         }
     }
 
-    var initialScheme = body.classList.contains("dark-theme") ? "dark" : "light";
+    var initialScheme = (root.classList.contains("dark-theme") || body.classList.contains("dark-theme")) ? "dark" : "light";
     window.Hingle.commentScheme = initialScheme;
     ensureCommentScheme(initialScheme);
 
